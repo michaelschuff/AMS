@@ -91,12 +91,17 @@ MouseListener, MouseMotionListener
 	{
 		super.paintComponent(g);
 		Graphics2D g2d = (Graphics2D)g;
+
+
+		// scale the canvas, then draw stuff that needs to be scaled
 		AffineTransform unscaledTransform = g2d.getTransform();
 		g2d.translate(translateX, translateY);
 		g2d.scale(scale, scale);
 
-
 		draw_scaled(g2d);
+
+
+		// unscale and draw stuff that needs to be not scaled
 		g2d.setTransform(unscaledTransform);
 		draw_unscaled(g2d);
 
@@ -175,6 +180,9 @@ MouseListener, MouseMotionListener
 		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 	}
 
+
+	// draw stuff scaled (affected by zoom + translation)
+	// or not scaled (not affected by zoom + translation)
 	protected abstract void draw_scaled(Graphics2D g);
 	protected abstract void draw_unscaled(Graphics2D g);
 
@@ -183,9 +191,12 @@ MouseListener, MouseMotionListener
 		return new Point((int)(p.x / scale - translateX), (int)(p.y / scale - translateY));
 	}
 
+
+	// don't let user zoom in or out too far
 	private void clampScale() {
 		scale = Math.max(MAX_ZOOM, Math.min(MIN_ZOOM, scale));
 	}
+
 
 	public void mouseWheelMoved(MouseWheelEvent e)
 	{
@@ -193,6 +204,8 @@ MouseListener, MouseMotionListener
 		scale -= 0.1f * e.getPreciseWheelRotation();
 		clampScale();
 
+
+		// Zoom in centered on mouse location
 		translateX += (e.getX() - translateX) * (1 - scale / oldScale);
 		translateY += (e.getY() - translateY) * (1 - scale / oldScale);
 
@@ -244,6 +257,7 @@ MouseListener, MouseMotionListener
 	public void mouseExited(MouseEvent e) { }
 	public void mouseDragged(MouseEvent e) 
 	{
+		// Middle mouse button
 		if (e.getButton() == 2) {
 			dragEndScreen = e.getPoint();
 			int dx = dragEndScreen.x - dragStartScreen.x;
@@ -284,6 +298,8 @@ MouseListener, MouseMotionListener
 						translateX -= 5;
 					repaint();
 				}
+				// breaks if you don't sleep a short while.
+				// also helps with consistent button effect "velocity"
 				try {
 					Thread.sleep(10);
 				} catch (InterruptedException e) {
