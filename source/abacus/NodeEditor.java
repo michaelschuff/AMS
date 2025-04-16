@@ -51,9 +51,10 @@ public class NodeEditor extends JFrame implements ActionListener
 	ArrayList<JMenuItem> regSet = new ArrayList<JMenuItem>();
 	
 	JMenuItem help = new JMenuItem("Help");
-	
-	
-	JMenuItem[] items = { newMachine, saveMachine, saveRegisters, loadMachine, importMachine, importRegisters, export_xml, export_tm, close, help};
+
+
+//	JMenuItem[] items = { newMachine, saveMachine, saveRegisters, loadMachine, importMachine, importRegisters, export_xml, export_tm, close, help};
+	JMenuItem[] items = { newMachine, saveMachine, saveRegisters, loadMachine, importMachine, importRegisters, close, help};
 	
 	// buttons
 	static Image imageAdd = makeRedTransparent(new ImageIcon("images/imageAdd.GIF").getImage());
@@ -111,9 +112,9 @@ public class NodeEditor extends JFrame implements ActionListener
 		file.add(loadMachine);
 		file.add(importMachine);
 		file.add(importRegisters);
-		file.addSeparator();
-		file.add(export_xml);
-		file.add(export_tm);
+//		file.addSeparator();
+//		file.add(export_xml);
+//		file.add(export_tm);
 		file.addSeparator();
 		file.add(close);
 		menuBar.add(file);
@@ -750,29 +751,29 @@ public class NodeEditor extends JFrame implements ActionListener
 		}
 		else if (e.getSource() == export_xml)
 		{
-			if (locked)
-			{
-				JOptionPane.showMessageDialog(null,"There is currently an active simulation running. "
-						+ "First close the simulation window and then attempt exporting again.");
-			}
-			else
-			{
-				OTMSExporter otms = new OTMSExporter((Node)macPanel.nodes.get(0));
-				otms.exportXML();
-			}
+//			if (locked)
+//			{
+//				JOptionPane.showMessageDialog(null,"There is currently an active simulation running. "
+//						+ "First close the simulation window and then attempt exporting again.");
+//			}
+//			else
+//			{
+//				OTMSExporter otms = new OTMSExporter((Node)macPanel.nodes.get(0));
+//				otms.exportXML();
+//			}
 		}
 		else if (e.getSource() == export_tm)
 		{
-			if (locked)
-			{
-				JOptionPane.showMessageDialog(null,"There is currently an active simulation running. "
-						+ "First close the simulation window and then attempt exporting again.");
-			}
-			else
-			{
-				OTMSExporter otms = new OTMSExporter((Node)macPanel.nodes.get(0));
-				otms.exportTM();
-			}
+//			if (locked)
+//			{
+//				JOptionPane.showMessageDialog(null,"There is currently an active simulation running. "
+//						+ "First close the simulation window and then attempt exporting again.");
+//			}
+//			else
+//			{
+//				OTMSExporter otms = new OTMSExporter((Node)macPanel.nodes.get(0));
+//				otms.exportTM();
+//			}
 		}
 		else if (regSet.contains(e.getSource()))
 	    {
