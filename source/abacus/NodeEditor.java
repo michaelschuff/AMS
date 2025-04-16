@@ -40,6 +40,7 @@ public class NodeEditor extends JFrame implements ActionListener
 	private int numRegSets = 10;
 	JMenuItem newMachine = new JMenuItem("New Machine");
 	JMenuItem saveMachine = new JMenuItem("Save Machine");
+	JMenuItem saveRegisters = new JMenuItem("Save Registers");
 	JMenuItem loadMachine = new JMenuItem("Load Machine");
 	JMenuItem importMachine = new JMenuItem("Import Machine");
 	JMenuItem importRegisters = new JMenuItem("Import Registers");
@@ -52,7 +53,7 @@ public class NodeEditor extends JFrame implements ActionListener
 	JMenuItem help = new JMenuItem("Help");
 	
 	
-	JMenuItem[] items = { newMachine, saveMachine, loadMachine, importMachine, importRegisters, export_xml, export_tm, close, help}; 
+	JMenuItem[] items = { newMachine, saveMachine, saveRegisters, loadMachine, importMachine, importRegisters, export_xml, export_tm, close, help};
 	
 	// buttons
 	static Image imageAdd = makeRedTransparent(new ImageIcon("images/imageAdd.GIF").getImage());
@@ -106,6 +107,7 @@ public class NodeEditor extends JFrame implements ActionListener
 		JMenu file = new JMenu("File");
 		file.add(newMachine);
 		file.add(saveMachine);
+		file.add(saveRegisters);
 		file.add(loadMachine);
 		file.add(importMachine);
 		file.add(importRegisters);
@@ -455,7 +457,7 @@ public class NodeEditor extends JFrame implements ActionListener
 				ne.re.regInputNum = fd.getRegInput();
 				ne.re.otherRegs = fd.getOtherRegs();
 				ne.macPanel.comments = fd.getComments();
-				ne.simulator.setInputNumberText();
+//				ne.simulator.setInputNumberText(); MICHAEL
 				ne.repaint();
 				ne.re.repaint();
 			}
@@ -674,7 +676,7 @@ public class NodeEditor extends JFrame implements ActionListener
 				re.regInputNum = fd.getRegInput();
 				re.otherRegs = fd.getOtherRegs();
 				re.setRegisterInput(oldInput);
-				simulator.setInputNumberText();
+//				simulator.setInputNumberText(); MICHAEL
 				repaint();
 				re.repaint();
 			}
@@ -734,12 +736,34 @@ public class NodeEditor extends JFrame implements ActionListener
 				//fd.nodes = macPanel.nodes;
 				//fd.regs = re.regs;
 				//fd.comments = macPanel.comments;
-                fd.setNodes(macPanel.nodes);
-                fd.setRegs(re.regs);
+				fd.setNodes(macPanel.nodes);
+				fd.setRegs(re.regs);
 				fd.setRegInput(re.regInputNum);
 				fd.setOtherRegs(re.otherRegs);
-                fd.setComments(macPanel.comments);
-				
+				fd.setComments(macPanel.comments);
+
+				fd.save();
+			}
+		}
+		else if (e.getSource() == saveRegisters)
+		{
+			if (locked)
+			{
+				JOptionPane.showMessageDialog(null,"There is currently an active simulation running. "
+						+ "First close the simulation window and then attempt saving again.");
+			}
+			else
+			{
+				FileData fd = new FileData();
+				//fd.nodes = macPanel.nodes;
+				//fd.regs = re.regs;
+				//fd.comments = macPanel.comments;
+//				fd.setNodes(macPanel.nodes);
+				fd.setRegs(re.regs);
+				fd.setRegInput(re.regInputNum);
+				fd.setOtherRegs(re.otherRegs);
+//				fd.setComments(macPanel.comments);
+
 				fd.save();
 			}
 		}
@@ -780,7 +804,7 @@ public class NodeEditor extends JFrame implements ActionListener
 			{
 	            int regNum = regSet.indexOf(e.getSource());
 	    	    boolean RIrv = re.setRegisterInput(regNum);
-	    	    simulator.setInputNumberText();
+//	    	    simulator.setInputNumberText(); MICHAEL
 			}
 	    }
 	}

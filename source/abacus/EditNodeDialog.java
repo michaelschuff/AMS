@@ -128,4 +128,9 @@ public class EditNodeDialog extends JDialog implements ActionListener, ItemListe
 		}
 	}
 
+	// MICHAEL
+	@Override
+	public void itemStateChanged(ItemEvent e) {
+
+	}
 }

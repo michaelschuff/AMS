@@ -25,7 +25,7 @@ public class Node
 	private static int NODE_SIZE = 50;
 	private static int ARROW_SIZE = 10;
 	private static int E_DIST = 15;
-	private static int TRINAGLE_SIZE = 25;
+	private static int TRIANGLE_SIZE = 25;
 	private static int LOOP_WIDTH = 20;
 	private static int LOOP_HEIGHT = 20;
 	private static Stroke medium = new BasicStroke(2);
@@ -144,8 +144,8 @@ public class Node
 	public void drawInitState(Graphics2D g)
 	{
 		Point one = new Point(location.x - NODE_SIZE/2, location.y);
-		Point two = new Point(one.x - TRINAGLE_SIZE/2,one.y-TRINAGLE_SIZE/2);
-		Point three = new Point(one.x - TRINAGLE_SIZE/2,one.y+TRINAGLE_SIZE/2);
+		Point two = new Point(one.x - TRIANGLE_SIZE/2,one.y-TRIANGLE_SIZE/2);
+		Point three = new Point(one.x - TRIANGLE_SIZE/2,one.y+TRIANGLE_SIZE/2);
 		
 		setupDrawing(g);
 		g.setColor(Color.black);
