@@ -182,7 +182,62 @@ public class Node
 		
 		return rv;
 	}
-	
+	public boolean inBounds(Point p) {
+		Ellipse2D.Float e = new Ellipse2D.Float(location.x-NODE_SIZE/2,location.y-NODE_SIZE/2,
+				NODE_SIZE,NODE_SIZE);
+		boolean ret = false;
+		if (e.contains(p))
+		{
+
+			ret = true;
+		}
+		else
+		{
+			if (out != null)
+			{
+				if (out == this)
+				{
+					if (isNearSelfArrow(p))
+					{
+						ret = true;
+					}
+				}
+				else if (isNearLine(p,location,out.location))
+				{
+					ret = true;
+				}
+			}
+			else
+			{ // out == null
+				Point q = new Point((int)(location.x - 1.5 * NODE_SIZE),
+						(int)(location.y + 1.5 * NODE_SIZE));
+
+				if (isNearLine(p,location,q))
+				{
+					ret = true;
+				}
+			}
+
+			if (!plus)
+			{
+				if (outEmpty != null && isNearLine(p,location,outEmpty.location))
+				{
+					ret = true;
+				}
+				else if (outEmpty == null)
+				{ // outEmpty == null
+					Point q = new Point((int)(location.x + 1.5 * NODE_SIZE),
+							(int)(location.y + 1.5 * NODE_SIZE));
+
+					if (isNearLine(p,location,q))
+					{
+						ret = true;
+					}
+				}
+			}
+		}
+		return ret;
+	}
 	/**
 	 * Select the node / transition at this point
 	 * @param p the point the user clicked on

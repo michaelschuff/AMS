@@ -54,16 +54,21 @@ public class Comment
 		g.drawString(s,p.x,p.y - COMMENT_SIZE);
 				
 	}
-	
+
+	public boolean inBounds(Point p)
+	{
+		return p.distanceSq(this.p) < (COMMENT_SIZE/2) * (COMMENT_SIZE/2);
+	}
+
 	public boolean select(Point p)
 	{
 		selected = false;
-		
+
 		if (p.distanceSq(this.p) < (COMMENT_SIZE/2) * (COMMENT_SIZE/2))
 		{
 			selected = true;
 		}
-		
+
 		return selected;
 	}
 	
