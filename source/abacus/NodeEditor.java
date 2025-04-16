@@ -684,14 +684,13 @@ public class NodeEditor extends JFrame implements ActionListener
 		else if (e.getSource() == help)
 		{
 			JOptionPane.showMessageDialog(null,
-				"To set an initial state: Double click a node when in modification mode.\n" +
-				"To change a state's register: Double click a node when in modification mode.\n" +
+				"To set an initial state: Click a node when in modification mode.\n" +
+				"To change a state's register: Click a node when in modification mode.\n" +
 				"To clear a transition's destination, click the transition while in delete mode.\n" +
-				"To scroll: Hold the left mouse button on whitespace and drag.\n" +
+				"To scroll: Hold the middle mouse button (mouse 3) and drag.\n" +
 				"To zoom: Scroll with the mouse wheel.\n" +
-				"To reset zoom and scroll location: Double right click\n" +
-				"To create comments: Double click on an empty space when in modification mode.\n" +
-				"To modify/delete comments: Double click on a comment when in modification mode.\n" +
+				"To create comments: click on an empty space when in modification mode.\n" +
+				"To modify/delete comments: click on a comment when in modification mode.\n" +
 				"Use \"Register Input\" to change which set of registers to run the machine on\n" +
 				"Use the play all button to select multiple inputs to run the machine on in succession at the selected speed\n" +
 				"Restoring registers restores only the inputs that were used in the last simulation\n" +
@@ -699,29 +698,11 @@ public class NodeEditor extends JFrame implements ActionListener
 				"You can use the term \"all\" when remapping registers to change all nodes' registers using one rule (excludes an registers with their own rules)\n" +
 				"You can remap a register to 0 to have it be set to the first register not already in use\n\n" +
 				"Program by Stanley Bak, April 2006 \n" + 
-				"Modified by Martin Papesh, May 2012\n" + 
-				"Modified by Nevin Jacob, May 2017",
+				"Modified by Martin Papesh, May 2012\n" +
+				"Modified by Nevin Jacob, May 2017\n" +
+				"Modified by Michael Schuff, Apr 2025",
 				"Help", 
-				JOptionPane.INFORMATION_MESSAGE);		
-			/*JOptionPane.showMessageDialog(null,
-				"To set an initial state: Double click a node when in modification mode.\n" +
-				"To change a state's register: Double click a node when in modification mode.\n" +
-				"To clear an empty transition's destination: Make the empty transition go to the " +
-					"originating node.\n" +
-				"To scroll: Hold the middle mouse button and drag.\n" +
-				"To zoom: Scroll with the mouse wheel.\n" +
-				"To reset zoom and scroll location: Double middle click\n" +
-				"To switch between tools quickly: Press the right mouse button.\n" +
-				"To create comments: Double click on an empty space when in modification mode.\n" +
-				"To modify/delete comments: Double click on a comment when in modification mode.\n" +
-				"Remapping registers when importing machines changes registers used in the imported machine to the ones specified\n" +
-				"You can use the term \"all\" when remapping registers to change all nodes' registers using one rule (excludes an registers with their own rules)\n" +
-				"You can remap a register to 0 to have it be set to the first register not already in use\n\n" +
-				"Program by Stanley Bak, April 2006 \n" + 
-				"Modified by Martin Papesh, May 2012\n" + 
-				"Modified by Nevin Jacob, May 2017",
-				"Help", 
-				JOptionPane.INFORMATION_MESSAGE);		*/
+				JOptionPane.INFORMATION_MESSAGE);
 		}
 		else if (e.getSource() == saveMachine)
 		{

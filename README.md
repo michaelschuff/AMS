@@ -12,8 +12,27 @@ Tim Treese
 Vatsal Bhagwani  
 2017:
 Nevin Jacob
+2025:
+Michael Schuff
 
 ## About
+---VERSION 3.2 RELEASE NOTES--------------------------------------
+IMPROVEMENTS OVER 3.1:
+
+1) Overhauled interaction with states, comments, and transitions to be much more user friendly.
+
+2) Zoom and scroll features are now much smoother and user friendly.
+
+3) Added a Save Register menu button to save just the registers
+   
+
+BUGS:
+
+1) Users have reported the starting node switching when opening a saved file. This bug was unable to be reproduced, but should be marked as active
+
+2) Turing Machine conversion currently not working so it has been temporarily removed
+
+
 ---VERSION 3.1 RELEASE NOTES--------------------------------------
 IMPROVEMENTS OVER 2.2:
 
