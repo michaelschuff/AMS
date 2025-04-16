@@ -108,7 +108,8 @@ public class MachinePanel extends ZoomablePanel
 		    boolean temp = c.select(p);
 		}
 		boolean ret = false;
-		if (parent.getState() == NodeEditor.STATE_MOD && !locked && !notInSelection)
+//		if (parent.getState() == NodeEditor.STATE_MOD && !locked && !notInSelection)
+		if (parent.getState() == NodeEditor.STATE_MOD && !locked)
 		{
 		    ret = true;
 		}
@@ -179,7 +180,7 @@ public class MachinePanel extends ZoomablePanel
 		{
 			Point point = e.getPoint();
 		    Object oldselection = selection;
-		    
+//			System.out.println("clicked in MachinePanel");
 			if (!isZoomAction(point) && !locked && e.getButton() == MouseEvent.BUTTON1)
 			{
 				boolean doNotSelect = false;
