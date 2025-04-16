@@ -10,6 +10,7 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
 import java.util.TreeSet;
 import java.awt.event.*;
@@ -77,7 +78,7 @@ public class MachinePanel extends ZoomablePanel
 		{
 			Node n = (Node)nodes.get(x);
 			
-			t.add(new Integer(n.getRegister()));
+			t.add(n.getRegister());
 		}
 		
 		return t.size();
@@ -92,207 +93,345 @@ public class MachinePanel extends ZoomablePanel
 	{
 		locked = false;
 	}
-	
-	public boolean checkClicked(Point pt)
+
+	protected void draw_scaled(Graphics2D g2d)
 	{
-	    boolean notInSelection = (selection == null);
-		if (!notInSelection && selection instanceof Node){
-		    Node n = (Node) selection;
-		    notInSelection = !n.isInNode(pt);
-		}
-		if (!notInSelection && selection instanceof Comment )
-		{
-		    Comment c = (Comment)selection;
-		    notInSelection = !c.select(pt);
-		    Point p = c.getP();
-		    boolean temp = c.select(p);
-		}
-		boolean ret = false;
-//		if (parent.getState() == NodeEditor.STATE_MOD && !locked && !notInSelection)
-		if (parent.getState() == NodeEditor.STATE_MOD && !locked)
-		{
-		    ret = true;
-		}
-		return ret;
-	}
-	
-	public boolean checkClickedDel(Point pt)
-	{
-	    boolean notInSelection = (selection == null);
-		if (!notInSelection && selection instanceof Node){
-		    Node n = (Node) selection;
-		    notInSelection = !n.checkSelected(pt);
-		}
-		if (!notInSelection && selection instanceof Comment )
-		{
-		    Comment c = (Comment)selection;
-		    notInSelection = !c.select(pt);
-		    Point p = c.getP();
-		    boolean temp = c.select(p);
-		}
-		boolean ret = false;
-		if (parent.getState() == NodeEditor.STATE_DEL && !locked && !notInSelection)
-		{
-		    ret = true;
-		}
-		return ret;
-	}
-	
-	protected void draw(Graphics2D g)
-	{
-		for (int x = 0; x < comments.size(); ++x)
-		{
+		for (int x = 0; x < comments.size(); ++x) {
 			Comment c = (Comment)comments.get(x);
-			
-			c.draw(g);
+			c.draw(g2d);
 		}
-		
-		for (int x = 0; x < nodes.size(); ++x)
-		{
+
+		for (int x = 0; x < nodes.size(); ++x) {
 			Node n = (Node)nodes.get(x);
-			
-			n.draw(g);
+			n.draw(g2d);
 		}
-		
-		if (nodes.size() > 0)
-		{
+
+		if (nodes.size() > 0) {
 			Node n = (Node)nodes.get(0);
-			
-			n.drawInitState(g);
+			n.drawInitState(g2d);
 		}
-		
-		drawMouseImage(g);
 	}
-	
-	private void drawMouseImage(Graphics2D g)
-	{
-		if (previewImage != null)
-		{
-			g.drawImage(previewImage,mousePoint.x - previewImage.getWidth(null) / 2,
+
+	protected void draw_unscaled(Graphics2D g2d){
+		if (previewImage != null) {
+			g2d.drawImage(previewImage,mousePoint.x - previewImage.getWidth(null) / 2,
 					mousePoint.y - previewImage.getHeight(null) / 2,null);
 		}
 	}
+
 	
 	// internal class because ZoomablePanel already implements mousemotionlistener
 	class MouseAction implements MouseListener, MouseMotionListener, MouseWheelListener
 	{
 		public void mouseClicked(MouseEvent e)
 		{
-			Point point = e.getPoint();
+			System.out.println("clicked");
+			lastMousePoint = mousePoint;
+			mousePoint = e.getPoint();
+			Point realPoint = UntransformMousePoint(mousePoint);
 		    Object oldselection = selection;
-//			System.out.println("clicked in MachinePanel");
-			if (!isZoomAction(point) && !locked && e.getButton() == MouseEvent.BUTTON1)
+			if (!isZoomAction(mousePoint) && !locked && e.getButton() == MouseEvent.BUTTON1)
 			{
 				boolean doNotSelect = false;
 				int state = parent.getState();
-				lastMousePoint = e.getPoint();
-				mousePoint = toRealCoords(point);
-				
-				if (state == NodeEditor.STATE_ADD)
-				{
-					Node n = new Node();
-					n.setPlus(true);
-					n.setLocation(new Point(mousePoint.x + 8,mousePoint.y - 14));
-					if (nodes.size() == 0)
-					    n.setInitialState(true);
-					nodes.add(n);
-					//re.refreshReg(); // refresh register count
-				}
-				else if (state == NodeEditor.STATE_SUB)
-				{
-					Node n = new Node();
-					n.setLocation(new Point(mousePoint.x,mousePoint.y-13));
-					if (nodes.size() == 0)
-					    n.setInitialState(true);
-					nodes.add(n);
-				}
-				else if (state == NodeEditor.STATE_DEL)
-				{
-					selection = null;
-					if (!doNotSelect && selection == null) // select something
-					{
-						
-						for (int x = nodes.size()-1; x >= 0; --x)
-						{
-							Node n = (Node)nodes.get(x);
-							
-							if (selection == null && n.select(mousePoint) == true)
+
+				switch (state) {
+					case NodeEditor.STATE_ADD: {
+						Node n = new Node();
+						n.setPlus(true);
+						n.setLocation(new Point(realPoint.x + 8, realPoint.y - 14));
+						if (nodes.size() == 0)
+							n.setInitialState(true);
+						nodes.add(n);
+						break;
+					}
+					case NodeEditor.STATE_SUB: {
+						Node n = new Node();
+						n.setLocation(new Point(realPoint.x, realPoint.y - 13));
+						if (nodes.size() == 0)
+							n.setInitialState(true);
+						nodes.add(n);
+						break;
+					}
+					case NodeEditor.STATE_MOD: {
+						// apply an action to the current selection
+						if (selection != null) {
+							Node applyTo = null;
+							int index = -1;
+
+							for (int x = nodes.size()-1; x >= 0; --x)
 							{
-								selection = n;
-								
-								if (n.getSelected() == Node.SELECTED_NODE)
+								Node n = (Node)nodes.get(x);
+
+								if (n.isInNode(mousePoint) == true)
 								{
-									startPoint = new Point(mousePoint);
+									index = x;
+									applyTo = n;
+									break;
 								}
-								break;
 							}
-							else if (selection != null)
-							{
-								n.clearSelection();
-							}
-						}
-						if (selection instanceof Node) { // apply it
-	
+
+							if (applyTo != null && selection instanceof Node)
+							{ // apply it
 								Node selected = (Node)selection;
 								int sel = selected.getSelected();
-								
-								if (selected.checkSelected(mousePoint))
+
+								if (sel == Node.SELECTED_OUT)
 								{
-								    if (sel == Node.SELECTED_OUT)
-								    {
-									    selected.setOut(null);
-								    }
-								    else if (sel == Node.SELECTED_OUTEMPTY)
-								    {
-									    selected.setOutEmpty(null);
-								    }
-								    else if (sel == Node.SELECTED_NODE)
-								    {								
-									    Point p = parent.getLocation();
-									    p.x += getX() + e.getPoint().x;
-									    p.y += getY() + e.getPoint().y;
-									    
-									    for (int x = nodes.size()-1; x >= 0; --x)
-									    {
-									    	Node n = (Node)nodes.get(x);
-									    	
-									    	if (n.getOut() == selected)
-									    		n.setOut(null);
-									    	else if (n.getOutEmpty() == selected)
-									    		n.setOutEmpty(null);
-									    }
-									    nodes.remove(selected);
-									    if (nodes.size() > 0)
-	    								    ((Node)nodes.get(0)).setInitialState(true);
-								    }
-								    ((Node)selection).clearSelection();								
-									doNotSelect = true;
-						        }
-						}
-						
-						else{
-								for (int x = 0; x < comments.size(); ++x)
+									selected.setOut(applyTo);
+								}
+								else if (sel == Node.SELECTED_OUTEMPTY)
+								{
+									if (selected == applyTo)
+										selected.setOutEmpty(null);
+									else
+										selected.setOutEmpty(applyTo);
+								}
+								else if (sel == Node.SELECTED_NODE && selected == applyTo &&
+										e.getClickCount() == 2)
+								{
+									Point p = parent.getLocation();
+									p.x += getX() + e.getPoint().x;
+									p.y += getY() + e.getPoint().y;
+
+									int rv = end.modifyNode(selected,index == 0,p);
+									re.refreshReg(); // refresh register count
+
+									if (index != 0 && rv == EditNodeDialog.MOD_MAKEINITIAL)
 									{
-										Comment c = (Comment)comments.get(x);
-										
-										if (selection == null && c.select(mousePoint) == true)
-										{
-											selection = c;
-											startPoint = new Point(mousePoint);											
-										}
-										else if (selection != null)
-											c.clearSelection();
+										Node temp = (Node)nodes.get(index);
+										Node temp2 = (Node)nodes.get(0);
+										temp.setInitialState(true);
+										temp2.setInitialState(false);
+										nodes.set(index,temp2);
+										nodes.set(0,temp);
 									}
+									else if (rv == EditNodeDialog.MOD_DELETE)
+									{
+										for (int x = nodes.size()-1; x >= 0; --x)
+										{
+											Node n = (Node)nodes.get(x);
+
+											if (n.getOut() == selected)
+												n.setOut(null);
+											else if (n.getOutEmpty() == selected)
+												n.setOutEmpty(null);
+										}
+
+										nodes.remove(index);
+										if (nodes.size() > 0)
+											((Node)nodes.get(0)).setInitialState(true);
+									}
+
+									doNotSelect = true;
+								}
+							}
+							else if (selection instanceof Comment)
+							{
+
+								if (e.getClickCount() == 2)
+								{
+									String s = (String)JOptionPane.showInputDialog(
+											null,
+											"Comment Text, or leave blank to remove:",
+											"Set Comment Text",
+											JOptionPane.PLAIN_MESSAGE,
+											null,
+											null,
+											((Comment)selection).getS());
+
+									//If a string was returned
+									if (s != null)
+									{
+										if (s.length() > 0)
+											((Comment)selection).setS(s);
+										else
+										{
+											doNotSelect = true;
+											comments.remove(selection);
+										}
+									}
+								}
+							}
+
+							if (selection instanceof Node)
+							{
+								((Node)selection).clearSelection();
+							}
+							else if (selection instanceof Comment)
+								((Comment)selection).clearSelection();
+
+							selection = null;
+						}
+
+						if (!doNotSelect && selection == null) // select something
+						{
+							for (int x = 0; x < nodes.size(); ++x)
+							{
+								Node n = (Node)nodes.get(x);
+
+								if (selection == null && n.select(mousePoint) == true)
+								{
+									selection = n;
+
+									if (n.getSelected() == Node.SELECTED_NODE)
+									{
+										startPoint = new Point(mousePoint);
+									}
+
+									break;
+								}
+								else if (selection != null)
+								{
+									n.clearSelection();
+								}
+							}
+
+							if (selection == null)
+							{ // try comments
+								for (int x = 0; x < comments.size(); ++x)
+								{
+									Comment c = (Comment)comments.get(x);
+
+									if (selection == null && c.select(mousePoint))
+									{
+										selection = c;
+										startPoint = new Point(mousePoint);
+									}
+									else if (selection != null)
+										c.clearSelection();
+								}
+
+								if (selection == null)
+									startPoint = null;
+
+								if (selection == null && (e.getClickCount() == 2))
+								{ // create a comment
+									String s = (String)JOptionPane.showInputDialog(
+											null,
+											"Comment Text, or leave blank to remove:",
+											"Set Comment Text",
+											JOptionPane.PLAIN_MESSAGE,
+											null,
+											null,
+											"");
+
+									//If a string was returned
+									if (s != null)
+									{
+										if (s.length() > 0)
+										{
+											Comment c = new Comment();
+											c.setS(s);
+											c.setP(mousePoint);
+
+											comments.add(c);
+											selection = c;
+										}
+									}
+								}
+
+							}
+							else
+							{
+								for (int x = 0; x < comments.size(); ++x)
+								{
+									Comment c = (Comment)comments.get(x);
+
+									c.clearSelection();
+								}
+							}
+						}
+
+
+						break;
+					}
+					case NodeEditor.STATE_DEL: {
+						selection = null;
+						if (!doNotSelect && selection == null) // select something
+						{
+
+							for (int x = nodes.size()-1; x >= 0; --x)
+							{
+								Node n = (Node)nodes.get(x);
+
+								if (selection == null && n.select(realPoint) == true)
+								{
+									selection = n;
+
+									if (n.getSelected() == Node.SELECTED_NODE)
+									{
+										startPoint = new Point(realPoint);
+									}
+									break;
+								}
+								else if (selection != null)
+								{
+									n.clearSelection();
+								}
+							}
+							if (selection instanceof Node) { // apply it
+
+								Node selected = (Node)selection;
+								int sel = selected.getSelected();
+
+								if (selected.checkSelected(realPoint))
+								{
+									if (sel == Node.SELECTED_OUT)
+									{
+										selected.setOut(null);
+									}
+									else if (sel == Node.SELECTED_OUTEMPTY)
+									{
+										selected.setOutEmpty(null);
+									}
+									else if (sel == Node.SELECTED_NODE)
+									{
+										Point p = parent.getLocation();
+										p.x += getX() + e.getPoint().x;
+										p.y += getY() + e.getPoint().y;
+
+										for (int x = nodes.size()-1; x >= 0; --x)
+										{
+											Node n = (Node)nodes.get(x);
+
+											if (n.getOut() == selected)
+												n.setOut(null);
+											else if (n.getOutEmpty() == selected)
+												n.setOutEmpty(null);
+										}
+										nodes.remove(selected);
+										if (nodes.size() > 0)
+											((Node)nodes.get(0)).setInitialState(true);
+									}
+									((Node)selection).clearSelection();
+									doNotSelect = true;
+								}
+							}
+
+							else{
+								for (int x = 0; x < comments.size(); ++x)
+								{
+									Comment c = (Comment)comments.get(x);
+
+									if (selection == null && c.select(realPoint) == true)
+									{
+										selection = c;
+										startPoint = realPoint;
+									}
+									else if (selection != null)
+										c.clearSelection();
+								}
 								if (selection == null){
 									startPoint = null;
 								}
 								if (selection instanceof Comment)
 								{
 									doNotSelect = true;
-								    ((Comment)selection).clearSelection();
+									((Comment)selection).clearSelection();
 									comments.remove(selection);
 								}
-						}
+							}
 							if (selection instanceof Node)
 							{
 								((Node)selection).clearSelection();
@@ -300,219 +439,18 @@ public class MachinePanel extends ZoomablePanel
 							else if (selection instanceof Comment){
 								((Comment)selection).clearSelection();
 							}
-							
+
 							selection = null;
-							
-					}
-				}
-				
-				else if (state == NodeEditor.STATE_MOD)
-				{
-					
-					if (selection != null)
-					{ // apply an action to the current selection
-						Node applyTo = null;
-						int index = -1;
-						
-						for (int x = nodes.size()-1; x >= 0; --x)
-						{
-							Node n = (Node)nodes.get(x);
-							
-							if (n.isInNode(mousePoint) == true)
-							{
-								index = x;
-								applyTo = n;
-								break;
-							}
-						}
-						
-						if (applyTo != null && selection instanceof Node)
-						{ // apply it
-							Node selected = (Node)selection;
-							int sel = selected.getSelected();
-							
-							if (sel == Node.SELECTED_OUT)
-							{
-								selected.setOut(applyTo);
-							}
-							else if (sel == Node.SELECTED_OUTEMPTY)
-							{
-								if (selected == applyTo)
-									selected.setOutEmpty(null);
-								else
-									selected.setOutEmpty(applyTo);
-							}
-							else if (sel == Node.SELECTED_NODE && selected == applyTo &&
-									e.getClickCount() == 2)
-							{								
-								Point p = parent.getLocation();
-								p.x += getX() + e.getPoint().x;
-								p.y += getY() + e.getPoint().y;
-								
-								int rv = end.modifyNode(selected,index == 0,p);
-								re.refreshReg(); // refresh register count
-								
-								if (index != 0 && rv == EditNodeDialog.MOD_MAKEINITIAL)
-								{
-									Node temp = (Node)nodes.get(index);
-									Node temp2 = (Node)nodes.get(0);
-									temp.setInitialState(true);
-									temp2.setInitialState(false);
-									nodes.set(index,temp2);
-									nodes.set(0,temp);
-								}
-								else if (rv == EditNodeDialog.MOD_DELETE)
-								{
-									for (int x = nodes.size()-1; x >= 0; --x)
-									{
-										Node n = (Node)nodes.get(x);
-										
-										if (n.getOut() == selected)
-											n.setOut(null);
-										else if (n.getOutEmpty() == selected)
-											n.setOutEmpty(null);
-									}
-									
-									nodes.remove(index);
-								    if (nodes.size() > 0)
-    								    ((Node)nodes.get(0)).setInitialState(true);
-								}
-								
-								doNotSelect = true;
-							}
-						}
-						else if (selection instanceof Comment)
-						{
 
-							if (e.getClickCount() == 2)
-							{
-								String s = (String)JOptionPane.showInputDialog(
-					                    null,
-					                    "Comment Text, or leave blank to remove:",
-					                    "Set Comment Text",
-					                    JOptionPane.PLAIN_MESSAGE,
-					                    null,
-					                    null,
-					                    ((Comment)selection).getS());
-
-								//If a string was returned
-								if (s != null) 
-								{
-									if (s.length() > 0)
-										((Comment)selection).setS(s);
-									else
-									{
-										doNotSelect = true;
-										comments.remove(selection);
-									}
-								}
-							}
 						}
-						
-						if (selection instanceof Node)
-						{
-							((Node)selection).clearSelection();
-						}
-						else if (selection instanceof Comment)
-							((Comment)selection).clearSelection();
-						
-						selection = null;						
+						break;
 					}
-					
-					if (!doNotSelect && selection == null) // select something
-					{
-						for (int x = 0; x < nodes.size(); ++x)
-						{
-							Node n = (Node)nodes.get(x);
-							
-							if (selection == null && n.select(mousePoint) == true)
-							{
-								selection = n;
-								
-								if (n.getSelected() == Node.SELECTED_NODE)
-								{
-									startPoint = new Point(mousePoint);
-								}
-								
-								break;
-							}
-							else if (selection != null)
-							{
-								n.clearSelection();
-							}
-						}
-						
-						if (selection == null)
-						{ // try comments
-							for (int x = 0; x < comments.size(); ++x)
-							{
-								Comment c = (Comment)comments.get(x);
-								
-								if (selection == null && c.select(mousePoint))
-								{
-									selection = c;
-									startPoint = new Point(mousePoint);
-								}
-								else if (selection != null)
-									c.clearSelection();
-							}
-							
-							if (selection == null)
-								startPoint = null;
-							
-							if (selection == null && (e.getClickCount() == 2))
-							{ // create a comment
-								String s = (String)JOptionPane.showInputDialog(
-					                    null,
-					                    "Comment Text, or leave blank to remove:",
-					                    "Set Comment Text",
-					                    JOptionPane.PLAIN_MESSAGE,
-					                    null,
-					                    null,
-					                    "");
+					default:
+						break;
+				}
 
-								//If a string was returned
-								if (s != null) 
-								{
-									if (s.length() > 0)
-									{
-										Comment c = new Comment();
-										c.setS(s);
-										c.setP(mousePoint);
-										
-										comments.add(c);
-										selection = c;
-									}
-								}
-							}
-									
-						}
-						else
-						{
-							for (int x = 0; x < comments.size(); ++x)
-							{
-								Comment c = (Comment)comments.get(x);
-								
-								c.clearSelection();
-							}
-						}
-					}
-					
-				}
-				else
-				{
-					System.out.print("ERROR! Invalid state\n");
-				}
-				
 				repaint();
 			}
-			/*
-			else if (e.getButton() == MouseEvent.BUTTON3)
-			{
-				parent.nextButton();
-				mouseMoved(e);
-			}
-			*/
 			if (oldselection != null && oldselection != selection)
 			{
 			    if (oldselection instanceof Comment)
@@ -526,54 +464,61 @@ public class MachinePanel extends ZoomablePanel
 			        n.clearSelection();
 			    }
 			}
-			
-			//selection = null;
 		}
 
 		public void mousePressed(MouseEvent e)
-		{ 
-			Point point = e.getPoint();
-		    if (isZoomAction(point))
+		{
+			lastMousePoint = mousePoint;
+			mousePoint = e.getPoint();
+		    if (isZoomAction(mousePoint))
 		        return;
-			mousePoint = toRealCoords(point);
+
+			Point realPoint = UntransformMousePoint(mousePoint);
+
+
+
+
 			boolean notInSelection = (selection == null);
-			if (!notInSelection && selection instanceof Node){
-			    Node n = (Node) selection;
-			    notInSelection = !n.isInNode(mousePoint);
-			    if (notInSelection && n.getSelected() == Node.SELECTED_NODE)
-			        n.clearSelection();
+
+
+			// If something is already selected and we press it again
+			// then unselect it
+			if (!notInSelection) {
+				if (selection instanceof Node){
+					Node n = (Node) selection;
+					notInSelection = !n.isInNode(realPoint);
+					// If we clicked on it, unselect it/its transition
+					if (notInSelection && n.getSelected() == Node.SELECTED_NODE)
+						n.clearSelection();
+				}
+				if (selection instanceof Comment) {
+					Comment c = (Comment)selection;
+					notInSelection = !c.select(realPoint);
+				}
 			}
-			if (!notInSelection && selection instanceof Comment )
-			{
-			    Comment c = (Comment)selection;
-		        notInSelection = !c.select(mousePoint);
-			}
+
 			startPoint = null;
-			if (parent.getState() == NodeEditor.STATE_MOD && !locked && !notInSelection)
-			{
-				startPoint = new Point(mousePoint);
+			if (parent.getState() == NodeEditor.STATE_MOD && !locked && !notInSelection) {
+				startPoint = new Point(realPoint);
 			}
+
+
+
 			if (parent.getState() == NodeEditor.STATE_MOD && !locked && selection == null) // select something
 			{
-				for (int x = 0; x < nodes.size(); ++x)
-				{
-					Node n = (Node)nodes.get(x);
-					
-					if (selection == null && n.select(mousePoint) == true)
-					{
+				for (Object node : nodes) {
+					Node n = (Node) node;
+
+					if (selection == null && n.select(realPoint)) {
 						selection = n;
-						
-						if (n.getSelected() == Node.SELECTED_NODE)
-						{
-							startPoint = new Point(mousePoint);
+
+						if (n.getSelected() == Node.SELECTED_NODE) {
+							startPoint = new Point(realPoint);
 						}
-						
 						break;
-					}
-					else if (selection != null)
-					{
+					} else if (selection != null) {
 						n.clearSelection();
-			    	}
+					}
 				}
 				
 				if (selection == null)
@@ -582,10 +527,10 @@ public class MachinePanel extends ZoomablePanel
 					{
 						Comment c = (Comment)comments.get(x);
 						
-						if (selection == null && c.select(mousePoint))
+						if (selection == null && c.select(realPoint))
 						{
 							selection = c;
-							startPoint = new Point(mousePoint);
+							startPoint = new Point(realPoint);
 						}
 						else if (selection != null)
 							c.clearSelection();
@@ -608,13 +553,12 @@ public class MachinePanel extends ZoomablePanel
 			
 		}
 		
-	public void mouseReleased(MouseEvent e)
+		public void mouseReleased(MouseEvent e)
 		{ 
 			startPoint = null;
 		}
 
-		public void mouseEntered(MouseEvent e)
-		{ }
+		public void mouseEntered(MouseEvent e) { }
 
 		public void mouseExited(MouseEvent e)
 		{
@@ -623,13 +567,13 @@ public class MachinePanel extends ZoomablePanel
 		}
 
 		public void mouseDragged(MouseEvent e)
-		{ 
-			if (parent.getState() == NodeEditor.STATE_MOD && !locked && startPoint != null && selection != null)
-			{
-				Point p = toRealCoords(e.getPoint());
+		{
+			lastMousePoint = mousePoint;
+			mousePoint = e.getPoint();
+			if (parent.getState() == NodeEditor.STATE_MOD && !locked && startPoint != null && selection != null) {
 				
-				int dx = p.x - startPoint.x;
-				int dy = p.y - startPoint.y;
+				int dx = mousePoint.x - startPoint.x;
+				int dy = mousePoint.y - startPoint.y;
 				
 				Point oldLoc = (selection instanceof Node) ? ((Node)selection).getLocation() 
 						: ((Comment)selection).getP();
@@ -642,43 +586,35 @@ public class MachinePanel extends ZoomablePanel
 				{
 					((Comment)selection).setP(new Point(oldLoc.x + dx,oldLoc.y + dy));
 				}
-				
-				repaint();
-				startPoint = p;
+				startPoint = mousePoint;
 			}
+			repaint();
+
 		}
 
 		public void mouseWheelMoved(MouseWheelEvent e)
 		{
-			mousePoint = toRealCoords(lastMousePoint);
+			mousePoint = lastMousePoint;
 			repaint();
 		}
 		
-		public void mouseMoved(MouseEvent e)
-		{ 
-			if (!locked)
-			{
+		public void mouseMoved(MouseEvent e) {
+			lastMousePoint = mousePoint;
+			mousePoint = e.getPoint();
+			if (!locked) {
 				int state = parent.getState();
-				lastMousePoint = e.getPoint();
-				mousePoint = toRealCoords(e.getPoint());
 				
-				if (state == NodeEditor.STATE_ADD)
-				{
+				if (state == NodeEditor.STATE_ADD) {
 					previewImage = NodeEditor.transAdd;
-				}
-				else if (state == NodeEditor.STATE_SUB)
-				{
+				} else if (state == NodeEditor.STATE_SUB) {
 					previewImage = NodeEditor.transSub;
-				}
-				else if (state == NodeEditor.STATE_DEL)
-				{
+				} else if (state == NodeEditor.STATE_DEL) {
 					previewImage = NodeEditor.transDel;
-				}
-				else
+				} else {
 					previewImage = null;
-				
-				repaint();
+				}
 			}
+			repaint();
 		}
 		
 	}
