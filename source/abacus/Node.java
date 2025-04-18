@@ -22,25 +22,25 @@ public class Node
 	private static final Color nodeColor = new Color(255,255,155);
 	private Point location = new Point(50,50);
 	
-	private static int NODE_SIZE = 50;
-	private static int ARROW_SIZE = 10;
-	private static int E_DIST = 15;
-	private static int TRIANGLE_SIZE = 25;
-	private static int LOOP_WIDTH = 20;
-	private static int LOOP_HEIGHT = 20;
-	private static Stroke medium = new BasicStroke(2);
-	private static Stroke thin = new BasicStroke(1);
-	private static Font bigFont = new Font("Courier", Font.BOLD, 20);
-	private static Font medFont = new Font("Courier", Font.BOLD, 15);
-	private static Font smallFont = new Font("Courier", Font.BOLD, 12);
-	private static Font smallerFont = new Font("Courier", Font.BOLD, 9);
-	private static Font tinyFont = new Font("Courier", Font.BOLD, 6);
+	private static final int NODE_SIZE = 50;
+	private static final int ARROW_SIZE = 10;
+	private static final int E_DIST = 15;
+	private static final int TRIANGLE_SIZE = 25;
+	private static final int LOOP_WIDTH = 20;
+	private static final int LOOP_HEIGHT = 20;
+	private static final Stroke medium = new BasicStroke(2);
+	private static final Stroke thin = new BasicStroke(1);
+	private static final Font bigFont = new Font("Courier", Font.BOLD, 20);
+	private static final Font medFont = new Font("Courier", Font.BOLD, 15);
+	private static final Font smallFont = new Font("Courier", Font.BOLD, 12);
+	private static final Font smallerFont = new Font("Courier", Font.BOLD, 9);
+	private static final Font tinyFont = new Font("Courier", Font.BOLD, 6);
 	
 	// selection
 	public static final int SELECTED_NONE = 0;
 	public static final int SELECTED_NODE = 1;
 	public static final int SELECTED_OUT = 2;
-	public static final int SELECTED_OUTEMPTY = 3;
+	public static final int SELECTED_OUT_EMPTY = 3;
 	
 	private int selected = SELECTED_NONE;
 	private boolean pauseState = false;
@@ -139,7 +139,6 @@ public class Node
 	
 	/**
 	 * Drat the initial state triangle on this state
-	 * @param g
 	 */
 	public void drawInitState(Graphics2D g)
 	{
@@ -172,7 +171,7 @@ public class Node
 	{
 		boolean rv = false;		
 		
-		Ellipse2D.Float e = new Ellipse2D.Float(location.x-NODE_SIZE/2,location.y-NODE_SIZE/2,
+		Ellipse2D.Float e = new Ellipse2D.Float(location.x-NODE_SIZE/2.0f,location.y-NODE_SIZE/2.0f,
 				NODE_SIZE,NODE_SIZE);
 		
 		if (e.contains(p))
@@ -183,7 +182,7 @@ public class Node
 		return rv;
 	}
 	public boolean inBounds(Point p) {
-		Ellipse2D.Float e = new Ellipse2D.Float(location.x-NODE_SIZE/2,location.y-NODE_SIZE/2,
+		Ellipse2D.Float e = new Ellipse2D.Float(location.x-NODE_SIZE/2.0f,location.y-NODE_SIZE/2.0f,
 				NODE_SIZE,NODE_SIZE);
 		boolean ret = false;
 		if (e.contains(p))
@@ -248,7 +247,7 @@ public class Node
 		boolean rv = false;
 		selected = SELECTED_NONE;
 		
-		Ellipse2D.Float e = new Ellipse2D.Float(location.x-NODE_SIZE/2,location.y-NODE_SIZE/2,
+		Ellipse2D.Float e = new Ellipse2D.Float(location.x-NODE_SIZE/2.0f,location.y-NODE_SIZE/2.0f,
 				NODE_SIZE,NODE_SIZE);
 		
 		if (e.contains(p))
@@ -291,7 +290,7 @@ public class Node
 			{
 				if (outEmpty != null && isNearLine(p,location,outEmpty.location))
 				{
-					selected = SELECTED_OUTEMPTY;
+					selected = SELECTED_OUT_EMPTY;
 					rv = true;
 				}
 				else if (outEmpty == null)
@@ -301,7 +300,7 @@ public class Node
 					
 					if (isNearLine(p,location,q))
 					{
-						selected = SELECTED_OUTEMPTY;
+						selected = SELECTED_OUT_EMPTY;
 						rv = true;
 					}
 				}
@@ -332,27 +331,25 @@ public class Node
 	private static boolean isNearLine(Point where, Point end1, Point end2)
 	{
 		boolean rv = false;
-		Point p = end1;
-		Point q = end2;
-		double dx = q.x-p.x;
-		double dy = q.y-p.y;
+		double dx = end2.x- end1.x;
+		double dy = end2.y- end1.y;
 		double theta = Math.atan2(dy,dx);
 		double nodeRadius = NODE_SIZE/2.0;		
 		double theta2 = (Math.PI / 2) + theta;
 		
-		nodeRadius += ARROW_SIZE / 2;
+		nodeRadius += ARROW_SIZE / 2.0;
 		Point q_line = new Point ((int)(nodeRadius * Math.sin(theta2)) , 
 				(int)(nodeRadius * Math.cos(theta2)) );
 		
 		double thetaArrow = Math.PI / 2 - theta2;
-		if (p.distanceSq(q) > 5)
+		if (end1.distanceSq(end2) > 5)
 		{						
 			double HYP = 10;
 			Point start = new Point((int)(HYP * Math.sin(thetaArrow)),
 					(int)(HYP * Math.cos(thetaArrow)));
 			
-			Line2D.Float l = new Line2D.Float(p.x + start.x, p.y + start.y, q.x - q_line.x, 
-					q.y + q_line.y);
+			Line2D.Float l = new Line2D.Float(end1.x + start.x, end1.y + start.y, end2.x - q_line.x,
+					end2.y + q_line.y);
 			
 			double dist = l.ptSegDistSq(where);
 			
@@ -401,7 +398,7 @@ public class Node
 		
 		if (!plus)
 		{
-			if (selected == SELECTED_OUTEMPTY)
+			if (selected == SELECTED_OUT_EMPTY)
 				g.setColor(Color.red);
 			
 			if (outEmpty == null)
@@ -508,7 +505,7 @@ public class Node
 		Point q_real = new Point ((int)(nodeRadius * Math.sin(theta2)) , 
 				(int)(nodeRadius * Math.cos(theta2)) );
 		
-		nodeRadius += E_DIST / 2;
+		nodeRadius += E_DIST / 2.0;
 		Point q_line = new Point ((int)(nodeRadius * Math.sin(theta2)) , 
 				(int)(nodeRadius * Math.cos(theta2)) );
 		
@@ -564,7 +561,7 @@ public class Node
 		Point q_real = new Point ((int)(nodeRadius * Math.sin(theta2)) , 
 			(int)(nodeRadius * Math.cos(theta2)) );
 		
-		nodeRadius += ARROW_SIZE / 2;
+		nodeRadius += ARROW_SIZE / 2.0;
 		Point q_line = new Point ((int)(nodeRadius * Math.sin(theta2)) , 
 				(int)(nodeRadius * Math.cos(theta2)) );
 		
@@ -590,7 +587,7 @@ public class Node
 				q.y + q_real.y + (int)((-ARROW_SIZE) * Math.cos(theta2)) );
 		
 		
-		double arrowHyp = ARROW_SIZE/2;
+		double arrowHyp = ARROW_SIZE/2.0;
 		
 		Point arrow1 = new Point((int)(arrowHyp * Math.sin(thetaArrow)),
 					(int)(arrowHyp * Math.cos(thetaArrow)));		

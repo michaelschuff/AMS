@@ -11,7 +11,6 @@ import java.awt.event.ItemListener;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -19,16 +18,16 @@ import javax.swing.JTextField;
 
 public class EditNodeDialog extends JDialog implements ActionListener, ItemListener
 {
-	private JTextField tf = new JTextField(14);
+	private final JTextField tf = new JTextField(14);
 	//private String[] choices = { "Addition State", "Subtraction State" };
 	//private JComboBox combo = new JComboBox(choices);
-	private JCheckBox pauseCheck = new JCheckBox("Pause State");
-	private JCheckBox initial = new JCheckBox("Initial");
-	private JButton ok = new JButton("Ok");
+	private final JCheckBox pauseCheck = new JCheckBox("Pause State");
+	private final JCheckBox initial = new JCheckBox("Initial");
+	private final JButton ok = new JButton("Ok");
 	
 	private boolean pressedOk, deleted;
 	private boolean sInitial; // initial state
-	private boolean sAddition; // Addition state?
+//	private boolean sAddition; // Addition state?
 	private int register;
 	
 	public EditNodeDialog(Frame parent)
@@ -72,10 +71,7 @@ public class EditNodeDialog extends JDialog implements ActionListener, ItemListe
 		pressedOk = false;
 		deleted = false;
 		this.initial.setSelected(initial);
-		if (initial)
-			this.initial.setEnabled(false);
-		else
-			this.initial.setEnabled(true);
+		this.initial.setEnabled(!initial);
 		
 		//combo.setSelectedIndex(n.isPlus() ? 0 : 1);
 		tf.setText("" + n.getRegister());

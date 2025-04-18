@@ -10,10 +10,8 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
-import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
 import java.util.TreeSet;
-import java.awt.event.*;
 
 
 import javax.swing.BorderFactory;
@@ -28,7 +26,7 @@ public class MachinePanel extends ZoomablePanel
 	NodeEditor parent;
 	RegisterEditor re;
 	Image previewImage = null;
-	Point mousePoint, lastMousePoint, startPoint;
+	Point mousePoint, lastMousePoint;//, startPoint;
 	EditNodeDialog end;
 	private boolean locked = false;
 
@@ -64,11 +62,8 @@ public class MachinePanel extends ZoomablePanel
 			
 			n.clearSelection();
 		}
-		
-		for (int x = 0; x < comments.size(); ++x)
-		{
-			Comment c = comments.get(x);
-			
+
+		for (Comment c : comments) {
 			c.clearSelection();
 		}
 		
@@ -77,11 +72,11 @@ public class MachinePanel extends ZoomablePanel
 	
 	public int getRegCount()
 	{
-		TreeSet t = new TreeSet();
+		TreeSet<Integer> t = new TreeSet<>();
 		
 		for (int x = nodes.size()-1; x >= 0; --x)
 		{
-			Node n = (Node)nodes.get(x);
+			Node n = nodes.get(x);
 			
 			t.add(n.getRegister());
 		}
@@ -123,7 +118,7 @@ public class MachinePanel extends ZoomablePanel
 	}
 
 	
-	// internal class because ZoomablePanel already implements mousemotionlistener
+	// internal class because ZoomablePanel already implements mouse motion listener
 	class MouseAction implements MouseListener, MouseMotionListener, MouseWheelListener
 	{
 		public void mouseClicked(MouseEvent e) { }
@@ -243,8 +238,7 @@ public class MachinePanel extends ZoomablePanel
 						// if we release on different objects we do nothing
 						// we only do something if they are nodes
 						if (released_over == selection) {
-							if (selection instanceof Node) {
-								Node selected = (Node)selection;
+							if (selection instanceof Node selected) {
 								Node target = (Node) released_over;
 								int sel = selected.getSelected();
 
@@ -286,7 +280,8 @@ public class MachinePanel extends ZoomablePanel
 									}
 								}
 							}
-							else if (selection instanceof Comment) {
+//							else if (selection instanceof Comment) {
+							else if (selection != null) {
 								//edit the comment if we did not finish dragging
 								if (!didDrag) {
 									String s = (String)JOptionPane.showInputDialog(
@@ -317,7 +312,7 @@ public class MachinePanel extends ZoomablePanel
 
 									if (sel == Node.SELECTED_OUT) {
 										selected.setOut((Node) released_over);
-									} else if (sel == Node.SELECTED_OUTEMPTY) {
+									} else if (sel == Node.SELECTED_OUT_EMPTY) {
 										// we already have guaranteed released_over != selection
 										// (so that we won't connect an empty branch to itself)
 										selected.setOutEmpty((Node) released_over);
@@ -339,12 +334,11 @@ public class MachinePanel extends ZoomablePanel
 								if (confirm_selection != null) {
 									if (confirm_selection == selection) {
 										// safely delete the node
-										Node selected = confirm_selection;
-										int sel = selected.getSelected();
+										int sel = confirm_selection.getSelected();
 										if (sel == Node.SELECTED_OUT) {
-											selected.setOut(null);
-										} else if (sel == Node.SELECTED_OUTEMPTY) {
-											selected.setOutEmpty(null);
+											confirm_selection.setOut(null);
+										} else if (sel == Node.SELECTED_OUT_EMPTY) {
+											confirm_selection.setOutEmpty(null);
 										} else if (sel == Node.SELECTED_NODE) {
 											Point p = parent.getLocation();
 											p.x += getX() + e.getPoint().x;
@@ -353,12 +347,12 @@ public class MachinePanel extends ZoomablePanel
 											for (int x = nodes.size() - 1; x >= 0; --x) {
 												Node n = nodes.get(x);
 
-												if (n.getOut() == selected)
+												if (n.getOut() == confirm_selection)
 													n.setOut(null);
-												else if (n.getOutEmpty() == selected)
+												else if (n.getOutEmpty() == confirm_selection)
 													n.setOutEmpty(null);
 											}
-											nodes.remove(selected);
+											nodes.remove(confirm_selection);
 											if (nodes.size() > 0)
 												nodes.get(0).setInitialState(true);
 										}
@@ -409,8 +403,7 @@ public class MachinePanel extends ZoomablePanel
 
 			// If we selected a node (not its tail) then drag it with us
 			if (selection != null) {
-				if (selection instanceof Node) {
-					Node selected = (Node) selection;
+				if (selection instanceof Node selected) {
 					int sel = selected.getSelected();
 					if (sel == Node.SELECTED_NODE) {
 						Point realPoint = UntransformMousePoint(mousePoint);
@@ -418,8 +411,7 @@ public class MachinePanel extends ZoomablePanel
 					}
 				}
 
-				if (selection instanceof Comment) {
-					Comment selected = (Comment) selection;
+				if (selection instanceof Comment selected) {
 					Point realPoint = UntransformMousePoint(mousePoint);
 					selected.setP(realPoint);
 				}
@@ -451,11 +443,12 @@ public class MachinePanel extends ZoomablePanel
 				}
 			}
 
-			if (selection instanceof Node) {
-
-			} else if (selection instanceof Comment) {
-				Comment c = (Comment) selection;
-			}
+//			if (selection instanceof Node) {
+//
+//			} else
+//			if (selection instanceof Comment) {
+//				Comment c = (Comment) selection;
+//			}
 
 			repaint();
 		}

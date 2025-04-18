@@ -3,7 +3,6 @@ package abacus;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -11,7 +10,6 @@ import java.awt.Image;
 import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.RenderingHints;
-import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -34,10 +32,10 @@ public class RegisterEditor extends JPanel implements MouseMotionListener, Mouse
 {
 	RegisterPanel regPanel = new RegisterPanel();
 	private static final int scrollButtonWidth = 40;
-	public ArrayList<TreeMap> backups = new ArrayList<TreeMap>(); //  for use in computation
-	public TreeMap regs = new TreeMap(); // maps Integer -> BigInteger
+	public ArrayList<TreeMap<Integer, BigIntegerBean>> backups = new ArrayList<>(); //  for use in computation
+	public TreeMap<Integer, BigIntegerBean> regs = new TreeMap<>(); // maps Integer -> BigInteger
 	public int regInputNum = 0;
-	public ArrayList<TreeMap> otherRegs = new ArrayList<TreeMap>(); // stores other register inputs not in use yet
+	public ArrayList<TreeMap<Integer, BigIntegerBean>> otherRegs = new ArrayList<>(); // stores other register inputs not in use yet
 	private final static BigInteger biMillion = new BigInteger("1000000");
 	private final static BigIntegerBean BIBZero = new BigIntegerBean();
 	private double curReg = 1.0;
@@ -46,13 +44,13 @@ public class RegisterEditor extends JPanel implements MouseMotionListener, Mouse
 	private final static int INIT_WIDTH = 400;
 	//private JButton jump = new JButton("Jump To Register");
 	
-	private JButton jump = new JButton("Jump To Input");
-	private JButton jumpLeft = new JButton("<");
-	private JButton jumpRight = new JButton(">");
+	private final JButton jump = new JButton("Jump To Input");
+	private final JButton jumpLeft = new JButton("<");
+	private final JButton jumpRight = new JButton(">");
 	
 	
-	private JLabel inputNumber = new JLabel("Input: 1");
-	private JLabel numRegisters = new JLabel("Number of Registers: 0");
+	private final JLabel inputNumber = new JLabel("Input: 1");
+	private final JLabel numRegisters = new JLabel("Number of Registers: 0");
 
 	
 	public static Color darkGray = new Color(32, 32, 32);
@@ -60,10 +58,10 @@ public class RegisterEditor extends JPanel implements MouseMotionListener, Mouse
 	public static Font small = new Font("Verdana",Font.PLAIN,8);
 	public static final int REG_ARC = 20;
 	public static final int BUTTON_ARC = 15;
-	public static final Color compBlue = new Color(0,146,255);
+//	public static final Color compBlue = new Color(0,146,255);
 	public static final Color babyBlue = new Color(67,203,255);
 	private static final int buttonTriangleHeightOffset = 10;
-	private NodeEditor ne;
+	private final NodeEditor ne;
 	
 	private int selectedReg = -1;
 	private boolean locked = false;
@@ -117,7 +115,7 @@ public class RegisterEditor extends JPanel implements MouseMotionListener, Mouse
 		
 		for (int i = 0; i < ne.getNumRegSets(); i++)
 		{
-		    otherRegs.add(new TreeMap());
+		    otherRegs.add(new TreeMap<>());
 		}
 	}
 	
@@ -142,18 +140,18 @@ public class RegisterEditor extends JPanel implements MouseMotionListener, Mouse
 	
 	public void initial()
 	{
-		backups = (ArrayList<TreeMap>)otherRegs.clone();
-		backups.set(regInputNum, (TreeMap)regs.clone());
+		backups = (ArrayList<TreeMap<Integer, BigIntegerBean>>)otherRegs.clone();
+		backups.set(regInputNum, (TreeMap<Integer, BigIntegerBean>)regs.clone());
 	}
 	
 	public void restore(ArrayList<Integer> inputs)
 	{	
 	    for (Integer input:inputs)
 	    {
-	        TreeMap backup = (TreeMap)backups.get(input).clone();
+	        TreeMap<Integer, BigIntegerBean> backup = (TreeMap<Integer, BigIntegerBean>)backups.get(input).clone();
 	        otherRegs.set(input, backup);
 	        if (input == regInputNum)
-	            regs = (TreeMap)backup.clone();
+	            regs = (TreeMap<Integer, BigIntegerBean>)backup.clone();
 	    }
 	}
 	
@@ -171,7 +169,7 @@ public class RegisterEditor extends JPanel implements MouseMotionListener, Mouse
 	}
 	
 	/**
-	 * Subtact one from this register
+	 * Subtract one from this register
 	 * @param reg the register to take one pebble out of
 	 * @return false if we're empty
 	 */
@@ -209,10 +207,10 @@ public class RegisterEditor extends JPanel implements MouseMotionListener, Mouse
 	{
 		BigIntegerBean rv;
 		
-		Object o = regs.get(regNumber);
+		BigIntegerBean o = regs.get(regNumber);
 		if (o != null)
 		{
-			rv = (BigIntegerBean)o;
+			rv = o;
 		}
 		else
 			rv = BIBZero;
@@ -225,10 +223,10 @@ public class RegisterEditor extends JPanel implements MouseMotionListener, Mouse
 	    boolean rv = false;
 	    if (num < otherRegs.size() && num != regInputNum)
 	    {
-	        otherRegs.set(regInputNum, (TreeMap)regs.clone());  
-	        regs = new TreeMap();
+	        otherRegs.set(regInputNum, (TreeMap<Integer, BigIntegerBean>)regs.clone());
+	        regs = new TreeMap<>();
 	        if (otherRegs.get(num) != null)//from an old version
-	            regs = (TreeMap)(otherRegs.get(num).clone());
+	            regs = (TreeMap<Integer, BigIntegerBean>)(otherRegs.get(num).clone());
 	        regInputNum = num;
     		inputNumber.setText("Input: "+(regInputNum+1));
 	        repaint();
@@ -257,7 +255,7 @@ public class RegisterEditor extends JPanel implements MouseMotionListener, Mouse
 			
 			AffineTransform t = g2d.getTransform();
 			
-			strechToFill(g2d);
+			stretchToFill(g2d);
 
 			drawBins(g2d);
 			
@@ -269,7 +267,7 @@ public class RegisterEditor extends JPanel implements MouseMotionListener, Mouse
 		private void drawBins(Graphics2D g)
 		{
 			long init = Math.round(Math.floor(curReg));
-			double end = 11 + init + (INIT_WIDTH) / regWidth;
+			double end = 11 + init + ((double) INIT_WIDTH) / regWidth;
 			double startX = (init - curReg) * regWidth + scaleX(scrollButtonWidth);
 			g.setColor(Color.black);			
 			
@@ -329,7 +327,7 @@ public class RegisterEditor extends JPanel implements MouseMotionListener, Mouse
 			}
 		}
 		
-		private void strechToFill(Graphics2D g)
+		private void stretchToFill(Graphics2D g)
 		{
 			double scaleX = (double)getHeight()*5.5 / INIT_WIDTH;
 			double scaleY = (double)getHeight() / INIT_HEIGHT;
@@ -501,9 +499,9 @@ public class RegisterEditor extends JPanel implements MouseMotionListener, Mouse
 						
 						if (lastTime != -1)
 						{
-							double div = Math.max(500-(held/7),100);
+//							double div = Math.max(500-(held/7),100);
 							long dif = time - lastTime;
-							double dx = dif / div;
+//							double dx = dif / div;
 							
 							if (rightOn)
 							{
@@ -512,7 +510,6 @@ public class RegisterEditor extends JPanel implements MouseMotionListener, Mouse
 								try {
 									Thread.sleep(500);
 								} catch (InterruptedException e) {
-									// TODO Auto-generated catch block
 									e.printStackTrace();
 								}
 								
@@ -550,7 +547,9 @@ public class RegisterEditor extends JPanel implements MouseMotionListener, Mouse
 					{						
 						Thread.sleep(10);
 					}
-					catch (Exception e) { }
+					catch (Exception e) {
+						e.printStackTrace();
+					}
 				}
 			}
 		}
@@ -571,7 +570,7 @@ public class RegisterEditor extends JPanel implements MouseMotionListener, Mouse
 		
 		if (left.contains(p))
 		{
-			if (regPanel.leftOn == false || regPanel.rightOn == true)
+			if (!regPanel.leftOn || regPanel.rightOn)
 			{
 				regPanel.leftOn = true;
 				regPanel.rightOn = false;
@@ -580,7 +579,7 @@ public class RegisterEditor extends JPanel implements MouseMotionListener, Mouse
 		}
 		else if (right.contains(p))
 		{
-			if (regPanel.leftOn == true || regPanel.rightOn == false)
+			if (regPanel.leftOn || !regPanel.rightOn)
 			{
 				regPanel.leftOn = false;
 				regPanel.rightOn = true;
@@ -589,7 +588,7 @@ public class RegisterEditor extends JPanel implements MouseMotionListener, Mouse
 		}
 		else
 		{
-			if (regPanel.leftOn == true || regPanel.rightOn == true)
+			if (regPanel.leftOn || regPanel.rightOn)
 			{
 				regPanel.resetButtons();
 				regPanel.repaint();
@@ -601,8 +600,8 @@ public class RegisterEditor extends JPanel implements MouseMotionListener, Mouse
 	public int getClickedRegister(Point p)
 	{
 		long init = Math.round(Math.floor(curReg));
-		double end = 1 + init + (INIT_WIDTH) / regWidth;
-		double startX = (init - curReg) * regWidth + scaleX(scrollButtonWidth);
+//		double end = 1 + init + (INIT_WIDTH) / regWidth;
+//		double startX = (init - curReg) * regWidth + scaleX(scrollButtonWidth);
 		int rv = -1;
 		
 		//box size 95 px
@@ -653,7 +652,7 @@ public class RegisterEditor extends JPanel implements MouseMotionListener, Mouse
 		*/
 	}
 	
-	// trnaslate x
+	// translate x
 	public double scaleX(double from)
 	{
 		double scaleX = INIT_WIDTH / (double)regPanel.getWidth();
@@ -661,14 +660,14 @@ public class RegisterEditor extends JPanel implements MouseMotionListener, Mouse
 		return from * scaleX;
 	}
 	
-	// translate real coords to stetched coords
+	// translate real coords to stretched coords
 	public Point translatePoint(Point from)
 	{
-		double scaleX = INIT_WIDTH / (double)regPanel.getWidth();
+//		double scaleX = INIT_WIDTH / (double)regPanel.getWidth();
 		
 		double scaleY = INIT_HEIGHT / (double)regPanel.getHeight();
 		
-		return new Point((int)(from.x /** scaleX*/), (int)(from.y * scaleY));
+		return new Point(/*(int)*/(from.x /* scaleX*/), (int)(from.y * scaleY));
 	}
 
 	public void mouseClicked(MouseEvent e){}
@@ -693,13 +692,13 @@ public class RegisterEditor extends JPanel implements MouseMotionListener, Mouse
 					{
 
 						addOne(clicked);
-						return;
+//						return;
 					}
 					else if (real.y >= 35)
 					{
 
 						subOne(clicked);
-						return;
+//						return;
 					}
 					else
 					{
@@ -729,7 +728,7 @@ public class RegisterEditor extends JPanel implements MouseMotionListener, Mouse
 								JOptionPane.showMessageDialog(null, "You didn't enter an integer: '" + s + "'");
 							}
 					    
-							return;
+//							return;
 						}
 					}
 					
@@ -748,7 +747,7 @@ public class RegisterEditor extends JPanel implements MouseMotionListener, Mouse
 
 	public void mouseExited(MouseEvent arg0)
 	{
-		if (regPanel.leftOn == true || regPanel.rightOn == true)
+		if (regPanel.leftOn || regPanel.rightOn)
 		{
 			regPanel.resetButtons();
 			regPanel.repaint();

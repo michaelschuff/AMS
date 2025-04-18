@@ -16,51 +16,51 @@ import javax.swing.JOptionPane;
 // a bean used for saving and loading the data
 public class FileData
 {
-	public ArrayList comments = new ArrayList();
-	public ArrayList nodes = new ArrayList();
-	public TreeMap regs = new TreeMap();
+	public ArrayList<Comment> comments = new ArrayList<>();
+	public ArrayList<Node> nodes = new ArrayList<>();
+	public TreeMap<Integer,BigIntegerBean> regs = new TreeMap<>();
 	public int regInputNum = 0;
-	public ArrayList<TreeMap> otherRegs = new ArrayList<TreeMap>(); 
+	public ArrayList<TreeMap<Integer,BigIntegerBean>> otherRegs = new ArrayList<>();
 	final static FileDialog fileChooser = new FileDialog(new Frame());
 	
 	public FileData() {}
 
-	public ArrayList getNodes()
+	public ArrayList<Node> getNodes()
 	{
 		return nodes;
 	}
 
-	public void setNodes(ArrayList nodes)
+	public void setNodes(ArrayList<Node> nodes)
 	{
 		this.nodes = nodes;
 	}
 	
-	public ArrayList getComments()
+	public ArrayList<Comment> getComments()
 	{
 		return comments;
 	}
 
-	public void setComments(ArrayList comments)
+	public void setComments(ArrayList<Comment> comments)
 	{
 		this.comments = comments;
 	}
 
-	public TreeMap getRegs()
+	public TreeMap<Integer,BigIntegerBean> getRegs()
 	{
 		return regs;
 	}
 
-	public void setRegs(TreeMap regs)
+	public void setRegs(TreeMap<Integer,BigIntegerBean> regs)
 	{
 		this.regs = regs;
 	}
 
-	public ArrayList<TreeMap> getOtherRegs()
+	public ArrayList<TreeMap<Integer,BigIntegerBean>> getOtherRegs()
 	{
 		return otherRegs;
 	}
 
-	public void setOtherRegs(ArrayList<TreeMap> otherRegs)
+	public void setOtherRegs(ArrayList<TreeMap<Integer,BigIntegerBean>> otherRegs)
 	{
 		this.otherRegs = otherRegs;
 	}
@@ -136,20 +136,20 @@ public class FileData
 				//check if file references register 0 (NODES USING REGISTER 0 ARE CHANGED TO 1, OTHERS ARE UNCHANGED (if so, machine will not work anymore))
 				if (this.regs.containsKey(0))
 				{
-				    TreeMap tmp = new TreeMap();
-				    for (Object k : this.regs.keySet())
+				    TreeMap<Integer,BigIntegerBean> tmp = new TreeMap<>();
+				    for (Integer k : this.regs.keySet())
 				    {
-				        tmp.put((Integer)k+1, this.regs.get(k));
+				        tmp.put(k+1, this.regs.get(k));
 				    }
-				    this.regs = (TreeMap)tmp.clone();
+				    this.regs = (TreeMap<Integer,BigIntegerBean>)tmp.clone();
 				}
 				    
 				try
 				{
 				    for (int index = 1; index < this.nodes.size(); index++)
 				    {
-				    	Node temp = (Node)this.nodes.get(index);
-				    	Node temp2 = (Node)this.nodes.get(0);
+				    	Node temp = this.nodes.get(index);
+				    	Node temp2 = this.nodes.get(0);
 				    	boolean tempInit = temp.isInitialState();
 				    	boolean temp2Init = temp2.isInitialState();
 				    	if (temp2Init)
@@ -165,10 +165,11 @@ public class FileData
 				}
 				catch (Exception e)
 				{
+					System.out.println(e.getMessage());
 				}
 				if (this.nodes.size() > 0)
 				{
-				    Node init = (Node)this.nodes.get(0);
+				    Node init = this.nodes.get(0);
 				    init.setInitialState(false);
 				    this.nodes.set(0,init);
 				}
@@ -178,7 +179,7 @@ public class FileData
 	    	catch (Exception e)
 	    	{
 	    		JOptionPane.showMessageDialog(null,"Error loading: " + e);
-	    		rv = false;
+	    		return false;
 	    	}
 		}
 		

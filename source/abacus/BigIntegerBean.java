@@ -4,7 +4,7 @@ import java.math.BigInteger;
 
 public class BigIntegerBean
 {	
-	BigInteger val = null;
+	BigInteger val;
 	
 	public BigIntegerBean() 
 	{

@@ -15,8 +15,8 @@ public class Comment
 	private String s = "";
 	private boolean selected = false;
 	
-	private static Font medFont = new Font("Verdana", Font.BOLD, 12);
-	private static Stroke medium = new BasicStroke(2);
+	private static final Font medFont = new Font("Verdana", Font.BOLD, 12);
+	private static final Stroke medium = new BasicStroke(2);
 	private static final Color nodeColor = new Color(255,255,155);
 	private static final int COMMENT_SIZE = 10;
 	
@@ -57,17 +57,13 @@ public class Comment
 
 	public boolean inBounds(Point p)
 	{
-		return p.distanceSq(this.p) < (COMMENT_SIZE/2) * (COMMENT_SIZE/2);
+		return p.distanceSq(this.p) < (COMMENT_SIZE/2.0) * (COMMENT_SIZE/2.0);
 	}
 
 	public boolean select(Point p)
 	{
-		selected = false;
 
-		if (p.distanceSq(this.p) < (COMMENT_SIZE/2) * (COMMENT_SIZE/2))
-		{
-			selected = true;
-		}
+		selected = p.distanceSq(this.p) < (COMMENT_SIZE / 2.0) * (COMMENT_SIZE / 2.0);
 
 		return selected;
 	}
