@@ -200,16 +200,16 @@ public class RegisterEditor extends JPanel implements MouseMotionListener, Mouse
 	public void setRegisterContents(int num, BigInteger i)
 	{
 		if (i.equals(BigInteger.ZERO))
-			regs.remove(new Integer(num));
+			regs.remove(num);
 		else	
-			regs.put(new Integer(num),new BigIntegerBean(i));
+			regs.put(num,new BigIntegerBean(i));
 	}
 	
 	public BigIntegerBean getRegisterContents(int regNumber)
 	{
 		BigIntegerBean rv;
 		
-		Object o = regs.get(new Integer(regNumber));
+		Object o = regs.get(regNumber);
 		if (o != null)
 		{
 			rv = (BigIntegerBean)o;

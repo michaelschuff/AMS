@@ -21,6 +21,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JDialog;
 
 import java.util.ArrayList;
+import java.util.TreeMap;
 
 public class Simulator extends JPanel implements ActionListener
 {	
@@ -52,6 +53,7 @@ public class Simulator extends JPanel implements ActionListener
 	private boolean firstClick = true;
 	private boolean step = false;
 	private int maxTransitions = -1;
+	private boolean running = false;
 	
 	NodeEditor ne = null;
 	RegisterEditor re = null;
@@ -59,6 +61,8 @@ public class Simulator extends JPanel implements ActionListener
 	boolean resetRegisters = false;
     ArrayList<Integer> intInputNums = new ArrayList<Integer>();
     ArrayList<Integer> startIntInputNums = new ArrayList<Integer>();
+
+	private FileData last_registers = new FileData();
 	
 	public Simulator(NodeEditor ne, RegisterEditor re)
 	{	
@@ -94,6 +98,8 @@ public class Simulator extends JPanel implements ActionListener
 		west.add(speedSelection);
 		west.add(new JLabel("Maximum Transitions:"));
 		west.add(tf);
+
+		cache_registers();
 		
 		
 		
@@ -118,7 +124,22 @@ public class Simulator extends JPanel implements ActionListener
 //	    if (re != null) 
 //    		inputNumber.setText("Input: "+(re.regInputNum+1));
 //	}
-	
+
+	private void cache_registers() {
+		last_registers = new FileData();
+		last_registers.setRegs((TreeMap) re.regs.clone());
+		last_registers.setRegInput(re.regInputNum);
+		last_registers.setOtherRegs((ArrayList<TreeMap>) re.otherRegs.clone());
+	}
+	private void load_cached_registers() {
+		int oldInput = re.regInputNum;
+		re.regs = last_registers.getRegs();
+		re.regInputNum = last_registers.getRegInput();
+		re.otherRegs = last_registers.getOtherRegs();
+		re.setRegisterInput(oldInput);
+		repaint();
+	}
+
 	public boolean runningMultiple()
 	{
 	    return startIntInputNums.size() > 1;
@@ -126,7 +147,7 @@ public class Simulator extends JPanel implements ActionListener
 	
 	// begin a simulation
 	public void begin()
-	{	
+	{
 		if (firstClick) {
 			ne.clearSelection();
 			re.clearSelection();
@@ -139,7 +160,7 @@ public class Simulator extends JPanel implements ActionListener
 	    	re.setRegisterInput(intInputNums.get(0));
 	    	//setInputNumberText();
 			haltLabel.setText("");
-			curNode = (Node)ne.macPanel.nodes.get(0);
+			curNode = ne.macPanel.nodes.get(0);
 			firstClick = false;
 			//numRegisters.setText("Number of Registers: " + ne.macPanel.getRegCount());
 		}
@@ -171,11 +192,13 @@ public class Simulator extends JPanel implements ActionListener
 	{
 		if (e.getSource() == resetButton)
 		{
+			load_cached_registers();
 			resetMachine = true;
 		}
 		else if (e.getSource() == playButton)
 		{
 			if (ne.macPanel.nodes.size() > 0){
+				cache_registers();
 				begin();
 		    }
 			else
@@ -186,6 +209,7 @@ public class Simulator extends JPanel implements ActionListener
 		{
 			if (ne.macPanel.nodes.size() > 0)
 			{
+				cache_registers();
                 JPanel getInputs = new JPanel();
                 ArrayList<JCheckBox> inputNums = new ArrayList<JCheckBox>();
 		        for (int i = 0; i < ne.getNumRegSets(); i++)

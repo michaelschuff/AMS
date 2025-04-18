@@ -201,7 +201,7 @@ public class NodeEditor extends JFrame implements ActionListener
 			    	}
 				});
 	}
-	
+
 	public int getNumRegSets()
 	{
 	    return numRegSets;
@@ -677,7 +677,6 @@ public class NodeEditor extends JFrame implements ActionListener
 				re.regInputNum = fd.getRegInput();
 				re.otherRegs = fd.getOtherRegs();
 				re.setRegisterInput(oldInput);
-//				simulator.setInputNumberText(); MICHAEL
 				repaint();
 				re.repaint();
 			}
@@ -732,20 +731,14 @@ public class NodeEditor extends JFrame implements ActionListener
 			if (locked)
 			{
 				JOptionPane.showMessageDialog(null,"There is currently an active simulation running. "
-						+ "First close the simulation window and then attempt saving again.");
+						+ "First pause the simulation and then attempt saving again.");
 			}
 			else
 			{
 				FileData fd = new FileData();
-				//fd.nodes = macPanel.nodes;
-				//fd.regs = re.regs;
-				//fd.comments = macPanel.comments;
-//				fd.setNodes(macPanel.nodes);
 				fd.setRegs(re.regs);
 				fd.setRegInput(re.regInputNum);
 				fd.setOtherRegs(re.otherRegs);
-//				fd.setComments(macPanel.comments);
-
 				fd.save();
 			}
 		}
