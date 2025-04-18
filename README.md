@@ -24,6 +24,10 @@ IMPROVEMENTS OVER 3.1:
 2) Zoom and scroll features are now much smoother and user friendly.
 
 3) Added a Save Register menu button to save just the registers
+
+4) Resetting the machine now restores registers to their pre-computed state.
+
+5) Various minor bug fixes and improvements
    
 
 BUGS:
