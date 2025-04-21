@@ -7,13 +7,13 @@ Matthew Turnbull
 2012:
 Martin Papesh  
 2013:
-Tim Treese
+Tim Treese  
 2015:
 Vatsal Bhagwani  
 2017:
-Nevin Jacob
+Nevin Jacob  
 2025:
-Michael Schuff
+Michael Schuff  
 
 ## About
 ---VERSION 3.2 RELEASE NOTES--------------------------------------
@@ -27,7 +27,9 @@ IMPROVEMENTS OVER 3.1:
 
 4) Resetting the machine now restores registers to their pre-computed state.
 
-5) Various minor bug fixes and improvements
+5) Fixed an issue where some .yam files would not be loaded correctly using 'Load Machine'
+
+6) Various minor bug fixes and improvements
    
 
 BUGS:
